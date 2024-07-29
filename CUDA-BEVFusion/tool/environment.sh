@@ -22,25 +22,25 @@
 
 # export CUDA_VISIBLE_DEVICES=2
 
-export TensorRT_Lib=/path/to/TensorRT/lib
-export TensorRT_Inc=/path/to/TensorRT/include
-export TensorRT_Bin=/usr/src/tensorrt/bin
+export TensorRT_Lib=/opt/TensorRT/lib
+export TensorRT_Inc=/opt/TensorRT/include
+export TensorRT_Bin=/opt/TensorRT/bin
 
 export CUDA_Lib=/usr/local/cuda/lib64
 export CUDA_Inc=/usr/local/cuda/include
 export CUDA_Bin=/usr/local/cuda/bin
 export CUDA_HOME=/usr/local/cuda
 
-export CUDNN_Lib=/path/to/cudnn/lib
+export CUDNN_Lib=/usr/local/cuda/include
 
 
 # resnet50/resnet50int8/swint
-export DEBUG_MODEL=resnet50int8
+export DEBUG_MODEL=resnet50
 
 # fp16/int8
-export DEBUG_PRECISION=int8
+export DEBUG_PRECISION=fp16
 export DEBUG_DATA=example-data
-export USE_Python=OFF
+export USE_Python=ON
 
 # check the configuration path
 # clean the configuration status
