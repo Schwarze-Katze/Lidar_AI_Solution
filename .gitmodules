@@ -10,6 +10,3 @@
 [submodule "libraries/cuPCL"]
 	path = libraries/cuPCL
 	url = https://github.com/NVIDIA-AI-IOT/cuPCL.git
-[submodule "pointpillars_ws/src/CUDA-PointPillars"]
-	path = pointpillars_ws/src/CUDA-PointPillars
-	url = https://github.com/Schwarze-Katze/CUDA-PointPillars.git
