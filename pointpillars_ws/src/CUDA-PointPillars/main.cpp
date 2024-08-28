@@ -208,7 +208,9 @@ int main(int argc, char **argv)
   std::string lidar_topic;
   nh.getParam("lidar_topic", lidar_topic);
   ros::Subscriber pclsub = nh.subscribe(lidar_topic, 10, PointCloudCallback);
-  ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>("/marker", 10);
+  std::string vis_topic;
+  nh.getParam("vis_topic", vis_topic);
+  ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>(vis_topic, 10);
   ros::Rate rate(10);
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;

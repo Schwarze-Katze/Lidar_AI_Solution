@@ -1,8 +1,10 @@
 <launch>
     <arg name="node_name" default="rslidar" />
     <arg name="pcd_topic" default="/rslidar" />
+    <arg name="vis_topic" default="/marker" />
     <node name="$(arg node_name)" pkg="cuda_pointpillars" type="cuda_pointpillars" output="screen">
         <param name="src_path" type="str" value="$(find cuda_pointpillars)" />
         <param name="lidar_topic" type="str" value="$(arg pcd_topic)" />
+        <param name="vis_topic" type="str" value="$(arg vis_topic)" />
     </node>
 </launch>

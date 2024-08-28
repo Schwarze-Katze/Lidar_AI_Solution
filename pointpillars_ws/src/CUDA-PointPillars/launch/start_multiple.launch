@@ -2,10 +2,12 @@
     <include file="$(dirname)/cuda.launch">
         <arg name="node_name" value="rslidar_M1" />
         <arg name="pcd_topic" value="/rslidar_M1" />
+        <arg name="vis_topic" value="/marker_M1" />
     </include>
     <include file="$(dirname)/cuda.launch">
         <arg name="node_name" value="rslidar_P80" />
         <arg name="pcd_topic" value="/rslidar_P80" />
+        <arg name="vis_topic" value="/marker_P80" />
     </include>
     <include file="$(find rslidar_sdk)/launch/start.launch" />
 </launch>
