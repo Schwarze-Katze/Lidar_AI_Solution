@@ -245,6 +245,7 @@ int main(int argc, char **argv)
     float* points = new float[points_size * 4]; // 每个点对应4个float (x, y, z, intensity)
 
     if (pcd_buf.fields.empty()) {
+      ulk.unlock();
       ROS_INFO("waiting for pointcloud");
       ros::spinOnce();
       rate.sleep();
