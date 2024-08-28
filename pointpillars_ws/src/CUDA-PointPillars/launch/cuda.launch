@@ -1,5 +1,6 @@
 <launch>
     <node name="cuda_pointpillars" pkg="cuda_pointpillars" type="cuda_pointpillars" output="screen">
         <param name="src_path" type="str" value="$(find cuda_pointpillars)" />
+        <param name="lidar_topic" type="str" value="/rslidar_M1" />
     </node>
 </launch>

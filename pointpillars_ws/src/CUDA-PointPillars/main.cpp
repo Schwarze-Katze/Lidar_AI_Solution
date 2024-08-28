@@ -19,7 +19,7 @@
 #include <sstream>
 #include <fstream>
 #include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 #include "cuda_runtime.h"
 
 #include "./params.h"
@@ -43,8 +43,35 @@ std::string Data_File = "/data/";
 std::string Save_Dir = "/eval/kitti/object/pred_velo/";
 std::string Model_File = "/model/pointpillar.onnx";
 
-void PointCloudCallback(sensor_msgs::PointCloud2 msg) {
-  
+typedef std::unique_lock<std::mutex> ULK;
+std::mutex pcd_mtx;
+sensor_msgs::PointCloud2 pcd_buf;
+
+void PointCloudCallback(const sensor_msgs::PointCloud2& msg) {
+  ULK ulk(pcd_mtx);
+  pcd_buf = msg;
+#if 0
+  // 计算点的数量
+  size_t point_count = msg.width * msg.height;
+
+  // 分配内存，用于存储点云数据
+  points_data = new float[point_count * 4]; // 每个点对应4个float (x, y, z, intensity)
+
+  // 使用PointCloud2的迭代器来访问数据
+  sensor_msgs::PointCloud2ConstIterator<float> iter_x(msg, "x");
+  sensor_msgs::PointCloud2ConstIterator<float> iter_y(msg, "y");
+  sensor_msgs::PointCloud2ConstIterator<float> iter_z(msg, "z");
+  sensor_msgs::PointCloud2ConstIterator<float> iter_intensity(msg, "intensity");
+
+  for (size_t i = 0; i < point_count; ++i, ++iter_x, ++iter_y, ++iter_z, ++iter_intensity) {
+    points_data[i * 4 + 0] = *iter_x;       // x
+    points_data[i * 4 + 1] = *iter_y;       // y
+    points_data[i * 4 + 2] = *iter_z;       // z
+    points_data[i * 4 + 3] = *iter_intensity; // intensity
+  }
+  // 释放分配的内存
+  delete[] points_data;
+#endif
 }
 
 void Getinfo(void)
@@ -134,8 +161,11 @@ int main(int argc, char **argv)
   Getinfo();
   ros::init(argc, argv, "cuda_pointpillars_node");
   ros::NodeHandle nh("~");
-  ros::Subscriber pclsub = nh.subscribe("/rslidar_M1", 10, PointCloudCallback);
   nh.getParam("src_path", Src_Path);
+  std::string lidar_topic;
+  nh.getParam("lidar_topic", lidar_topic);
+  ros::Subscriber pclsub = nh.subscribe(lidar_topic, 10, PointCloudCallback);
+  ros::Rate rate(10);
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
   cudaStream_t stream = NULL;
@@ -151,40 +181,71 @@ int main(int argc, char **argv)
 
   PointPillar pointpillar(Src_Path + Model_File, stream);
 
-  for (int i = 0; i < 10; i++)
+  while(ros::ok())
   {
-    std::string dataFile = Src_Path + Data_File;
-
-    std::stringstream ss;
-
-    ss<< i;
-
+#define USE_ROS_PCD_INPUT
+#ifdef USE_ROS_PCD_INPUT
+    //for test, output to file
     int n_zero = 6;
-    std::string _str = ss.str();
+    std::string _str = "0";
+    std::string index_str = std::string(n_zero - _str.length(), '0') + _str;
+
+    ULK ulk(pcd_mtx);
+    // 计算点的数量
+    size_t points_size = pcd_buf.width * pcd_buf.height;
+
+    // 分配内存，用于存储点云数据
+    float* points = new float[points_size * 4]; // 每个点对应4个float (x, y, z, intensity)
+
+    if (pcd_buf.fields.empty()) {
+      ROS_INFO("waiting for pointcloud");
+      ros::spinOnce();
+      rate.sleep();
+      continue;
+    }
+    
+    // 使用PointCloud2的迭代器来访问数据
+    sensor_msgs::PointCloud2ConstIterator<float> iter_x(pcd_buf, "x");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_y(pcd_buf, "y");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_z(pcd_buf, "z");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_intensity(pcd_buf, "intensity");
+
+    for (size_t i = 0; i < points_size; ++i, ++iter_x, ++iter_y, ++iter_z, ++iter_intensity) {
+      points[i * 4 + 0] = *iter_x;       // x
+      points[i * 4 + 1] = *iter_y;       // y
+      points[i * 4 + 2] = *iter_z;       // z
+      points[i * 4 + 3] = *iter_intensity; // intensity
+    }
+    ulk.unlock();
+#else
+    std::string dataFile = Src_Path + Data_File;
+    int n_zero = 6;
+    std::string _str = "0";
     std::string index_str = std::string(n_zero - _str.length(), '0') + _str;
     dataFile += index_str;
-    dataFile +=".bin";
+    dataFile += ".bin";
 
-    std::cout << "<<<<<<<<<<<" <<std::endl;
-    std::cout << "load file: "<< dataFile <<std::endl;
+    std::cout << "<<<<<<<<<<<" << std::endl;
+    std::cout << "load file: " << dataFile << std::endl;
 
     //load points cloud
     unsigned int length = 0;
-    void *data = NULL;
-    std::shared_ptr<char> buffer((char *)data, std::default_delete<char[]>());
+    void* data = NULL;
+    std::shared_ptr<char> buffer((char*) data, std::default_delete<char[]>());
     loadData(dataFile.data(), &data, &length);
-    buffer.reset((char *)data);
+    buffer.reset((char*) data);
 
-    float* points = (float*)buffer.get();
-    size_t points_size = length/sizeof(float)/4;
-
-    std::cout << "find points num: "<< points_size <<std::endl;
+    float* points = (float*) buffer.get();
+    size_t points_size = length / sizeof(float) / 4;
+#endif
+    std::cout << "find points num: " << points_size << std::endl;
 
     float *points_data = nullptr;
     unsigned int points_data_size = points_size * 4 * sizeof(float);
     checkCudaErrors(cudaMallocManaged((void **)&points_data, points_data_size));
     checkCudaErrors(cudaMemcpy(points_data, points, points_data_size, cudaMemcpyDefault));
     checkCudaErrors(cudaDeviceSynchronize());
+    delete[] points;
 
     cudaEventRecord(start, stream);
 
@@ -202,7 +263,9 @@ int main(int argc, char **argv)
 
     nms_pred.clear();
 
-    std::cout << ">>>>>>>>>>>" <<std::endl;
+    std::cout << ">>>>>>>>>>>" << std::endl;
+    ros::spinOnce();
+    rate.sleep();
   }
 
   checkCudaErrors(cudaEventDestroy(start));
