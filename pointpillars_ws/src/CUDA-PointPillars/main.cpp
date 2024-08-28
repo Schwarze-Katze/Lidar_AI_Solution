@@ -196,7 +196,7 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub) {
   // 发布标记数组
   marker_pub.publish(marker_array);
 
-  ROS_INFO("Published %u bounding boxes", boxes.size());
+  ROS_INFO("Published %lu bounding boxes", boxes.size());
 }
 
 int main(int argc, char **argv)
