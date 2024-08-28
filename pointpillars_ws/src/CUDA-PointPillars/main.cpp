@@ -20,11 +20,13 @@
 #include <fstream>
 #include <ros/ros.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <tf/tf.h>
 #include "cuda_runtime.h"
 
 #include "./params.h"
 #include "./pointpillar.h"
-
+#define USE_ROS_PCD_INPUT
 #define checkCudaErrors(status)                                   \
 {                                                                 \
   if (status != 0)                                                \
@@ -132,29 +134,70 @@ int loadData(const char *file, void **data, unsigned int *length)
 
 void SaveBoxPred(std::vector<Bndbox> boxes, std::string file_name)
 {
-    std::ofstream ofs;
-    ofs.open(file_name, std::ios::out);
-    if (ofs.is_open()) {
-        for (const auto box : boxes) {
-          ofs << box.x << " ";
-          ofs << box.y << " ";
-          ofs << box.z << " ";
-          ofs << box.w << " ";
-          ofs << box.l << " ";
-          ofs << box.h << " ";
-          ofs << box.rt << " ";
-          ofs << box.id << " ";
-          ofs << box.score << " ";
-          ofs << "\n";
-        }
+  std::ofstream ofs;
+  ofs.open(file_name, std::ios::out);
+  if (ofs.is_open()) {
+    for (const auto box : boxes) {
+      ofs << box.x << " ";
+      ofs << box.y << " ";
+      ofs << box.z << " ";
+      ofs << box.w << " ";
+      ofs << box.l << " ";
+      ofs << box.h << " ";
+      ofs << box.rt << " ";
+      ofs << box.id << " ";
+      ofs << box.score << " ";
+      ofs << "\n";
     }
-    else {
-      std::cerr << "Output file cannot be opened!" << std::endl;
-    }
-    ofs.close();
-    std::cout << "Saved prediction in: " << file_name << std::endl;
-    return;
+  }
+  else {
+    std::cerr << "Output file cannot be opened!" << std::endl;
+  }
+  ofs.close();
+  std::cout << "Saved prediction in: " << file_name << std::endl;
+  return;
 };
+
+void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub) {
+  visualization_msgs::MarkerArray marker_array;
+
+  for (size_t i = 0; i < boxes.size(); ++i) {
+    const auto& box = boxes[i];
+
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "bounding_boxes";
+    marker.id = i;
+    marker.type = visualization_msgs::Marker::CUBE;
+    marker.action = visualization_msgs::Marker::ADD;
+
+    // 设置位置信息
+    marker.pose.position.x = box.x;
+    marker.pose.position.y = box.y;
+    marker.pose.position.z = box.z;
+    marker.pose.orientation = tf::createQuaternionMsgFromYaw(box.rt);
+
+    // 设置尺寸信息
+    marker.scale.x = box.l;
+    marker.scale.y = box.w;
+    marker.scale.z = box.h;
+
+    // 设置颜色（根据需要自定义）
+    marker.color.r = 0.0f;
+    marker.color.g = 1.0f;
+    marker.color.b = 0.0f;
+    marker.color.a = 0.4f;
+
+    // 将标记添加到数组
+    marker_array.markers.push_back(marker);
+  }
+
+  // 发布标记数组
+  marker_pub.publish(marker_array);
+
+  ROS_INFO("Published %u bounding boxes", boxes.size());
+}
 
 int main(int argc, char **argv)
 {
@@ -165,6 +208,7 @@ int main(int argc, char **argv)
   std::string lidar_topic;
   nh.getParam("lidar_topic", lidar_topic);
   ros::Subscriber pclsub = nh.subscribe(lidar_topic, 10, PointCloudCallback);
+  ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>("/marker", 10);
   ros::Rate rate(10);
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
@@ -183,7 +227,6 @@ int main(int argc, char **argv)
 
   while(ros::ok())
   {
-#define USE_ROS_PCD_INPUT
 #ifdef USE_ROS_PCD_INPUT
     //for test, output to file
     int n_zero = 6;
@@ -259,7 +302,11 @@ int main(int argc, char **argv)
 
     std::cout<<"Bndbox objs: "<< nms_pred.size()<<std::endl;
     std::string save_file_name = Src_Path + Save_Dir + index_str + ".txt";
+#ifdef USE_ROS_PCD_INPUT
+    PublishBoxPred(nms_pred, markerpub);
+#else
     SaveBoxPred(nms_pred, save_file_name);
+#endif
 
     nms_pred.clear();
 
