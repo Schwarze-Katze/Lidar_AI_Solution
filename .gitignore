@@ -1,2 +1,4 @@
 __pycache__
 .vscode/
+pointpillars_ws/build
+pointpillars_ws/devel
