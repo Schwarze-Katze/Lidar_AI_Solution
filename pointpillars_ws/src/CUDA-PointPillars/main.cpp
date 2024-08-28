@@ -189,6 +189,8 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub) {
     marker.color.b = 0.0f;
     marker.color.a = 0.4f;
 
+    marker.lifetime = ros::Duration(0.2);
+
     // 将标记添加到数组
     marker_array.markers.push_back(marker);
   }
