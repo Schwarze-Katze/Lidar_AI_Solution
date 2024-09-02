@@ -158,7 +158,7 @@ void SaveBoxPred(std::vector<Bndbox> boxes, std::string file_name)
   return;
 };
 
-void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub) {
+void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::string &color) {
   visualization_msgs::MarkerArray marker_array;
 
   for (size_t i = 0; i < boxes.size(); ++i) {
@@ -183,11 +183,31 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub) {
     marker.scale.y = box.w;
     marker.scale.z = box.h;
 
-    // 设置颜色（根据需要自定义）
+    // 设置颜色
+    if(color == "red"){
+    marker.color.r = 1.0f;
+    marker.color.g = 0.0f;
+    marker.color.b = 0.0f;
+    marker.color.a = 0.4f;
+    }
+    else if(color == "green"){
     marker.color.r = 0.0f;
     marker.color.g = 1.0f;
     marker.color.b = 0.0f;
     marker.color.a = 0.4f;
+    }
+    else if(color == "blue"){
+    marker.color.r = 0.0f;
+    marker.color.g = 0.0f;
+    marker.color.b = 1.0f;
+    marker.color.a = 0.4f;
+    }
+    else{
+    marker.color.r = 0.5f;
+    marker.color.g = 0.5f;
+    marker.color.b = 0.5f;
+    marker.color.a = 0.4f;
+    }
 
     marker.lifetime = ros::Duration(0.2);
 
@@ -213,6 +233,8 @@ int main(int argc, char **argv)
   std::string vis_topic;
   nh.getParam("vis_topic", vis_topic);
   ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>(vis_topic, 10);
+  std::string vis_color;
+  nh.getParam("vis_color", vis_color);
   ros::Rate rate(10);
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
@@ -308,7 +330,7 @@ int main(int argc, char **argv)
     std::cout<<"Bndbox objs: "<< nms_pred.size()<<std::endl;
     std::string save_file_name = Src_Path + Save_Dir + index_str + ".txt";
 #ifdef USE_ROS_PCD_INPUT
-    PublishBoxPred(nms_pred, markerpub);
+    PublishBoxPred(nms_pred, markerpub, vis_color);
 #else
     SaveBoxPred(nms_pred, save_file_name);
 #endif
