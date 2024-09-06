@@ -24,6 +24,9 @@
 #include <tf/tf.h>
 #include "cuda_runtime.h"
 
+
+
+
 #include "./params.h"
 #include "./pointpillar.h"
 #define USE_ROS_PCD_INPUT
@@ -44,6 +47,9 @@ std::string Src_Path = "";
 std::string Data_File = "/data/";
 std::string Save_Dir = "/eval/kitti/object/pred_velo/";
 std::string Model_File = "/model/pointpillar.onnx";
+
+
+std::vector<std::string> box_type;
 
 typedef std::unique_lock<std::mutex> ULK;
 std::mutex pcd_mtx;
@@ -164,11 +170,15 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
   for (size_t i = 0; i < boxes.size(); ++i) {
     const auto& box = boxes[i];
 
+
+
+
+    
     visualization_msgs::Marker marker;
     marker.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称
     marker.header.stamp = ros::Time::now();
     marker.ns = "bounding_boxes";
-    marker.id = i;
+    marker.id = 2 * i + 1;
     marker.type = visualization_msgs::Marker::CUBE;
     marker.action = visualization_msgs::Marker::ADD;
 
@@ -176,13 +186,12 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
     marker.pose.position.x = box.x;
     marker.pose.position.y = box.y;
     marker.pose.position.z = box.z;
-    marker.pose.orientation = tf::createQuaternionMsgFromYaw(box.rt);
+    marker.pose.orientation = tf::createQuaternionMsgFromYaw(box.rt + 1.57);
 
     // 设置尺寸信息
     marker.scale.x = box.l;
     marker.scale.y = box.w;
     marker.scale.z = box.h;
-
     // 设置颜色
     if(color == "red"){
     marker.color.r = 1.0f;
@@ -213,6 +222,29 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
 
     // 将标记添加到数组
     marker_array.markers.push_back(marker);
+
+
+    visualization_msgs::Marker marker_id;
+    marker_id = marker;
+    marker_id.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称
+    marker_id.header.stamp = ros::Time::now();
+    marker_id.ns = "bounding_boxes_id";
+    marker_id.id = 2 * i;
+    marker_id.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    marker_id.action = visualization_msgs::Marker::ADD;
+    if (box.id > box_type.size())
+      marker_id.text = "";
+    else
+      marker_id.text = box_type[box.id];
+    marker_id.pose.position.z += 0.3;
+    marker_id.scale.z = 0.5;
+    marker_id.color.r = 1.0f;
+    marker_id.color.g = 1.0f;
+    marker_id.color.b = 1.0f;
+    marker_id.color.a = 0.4f;
+    marker_array.markers.push_back(marker_id);
+
+
   }
 
   // 发布标记数组
@@ -245,6 +277,11 @@ int main(int argc, char **argv)
   checkCudaErrors(cudaStreamCreate(&stream));
 
   Params params_;
+
+  box_type.emplace_back("car");
+  box_type.emplace_back("people");
+  box_type.emplace_back("people");
+
 
   std::vector<Bndbox> nms_pred;
   nms_pred.reserve(100);

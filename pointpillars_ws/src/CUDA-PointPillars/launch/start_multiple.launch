@@ -5,11 +5,16 @@
         <arg name="vis_topic" value="/marker_M1" />
         <arg name="vis_color" value="green" />
     </include> -->
+
+   
+    <!-- /rslidar_M1  /rslidar_P80 -->
+
+
     <include file="$(dirname)/cuda.launch">
         <arg name="node_name" value="rslidar_P80" />
         <arg name="pcd_topic" value="/rslidar_P80" />
         <arg name="vis_topic" value="/marker_P80" />
         <arg name="vis_color" value="red" />
     </include>
-    <include file="$(find rslidar_sdk)/launch/start.launch" />
+    <!-- <include file="$(find rslidar_sdk)/launch/start.launch" /> -->
 </launch>
