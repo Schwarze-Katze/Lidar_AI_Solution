@@ -25,7 +25,6 @@ static int RING_ID_MAP_16[] = {
         0, 1, 2, 3, 4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8
 };
 
-pcl::StatisticalOutlierRemoval<pcl::PointXYZI> sor;
 
 
 // rslidar和velodyne的格式有微小的区别
@@ -177,7 +176,8 @@ void add_time(const typename pcl::PointCloud<T_in_p>::Ptr &pc_in,
     }
 }
 
-void rsHandler_XYZIRT(const sensor_msgs::PointCloud2 &pc_msg) {
+void rsHandler_XYZIRT(const sensor_msgs::PointCloud2& pc_msg) {
+    static pcl::StatisticalOutlierRemoval<pcl::PointXYZI> sor;
     pcl::PointCloud<RsPointXYZIRT>::Ptr pc_in(new pcl::PointCloud<RsPointXYZIRT>());
     pcl::fromROSMsg(pc_msg, *pc_in);
 
@@ -186,31 +186,30 @@ void rsHandler_XYZIRT(const sensor_msgs::PointCloud2 &pc_msg) {
         handle_pc_msg<RsPointXYZIRT, VelodynePointXYZIRT>(pc_in, pc_out);
         add_ring<RsPointXYZIRT, VelodynePointXYZIRT>(pc_in, pc_out);
         add_time<RsPointXYZIRT, VelodynePointXYZIRT>(pc_in, pc_out);
-        publish_points(pc_out, pc_msg);
     } else if (output_type == "XYZIR") {
         pcl::PointCloud<VelodynePointXYZIR>::Ptr pc_out(new pcl::PointCloud<VelodynePointXYZIR>());
         handle_pc_msg<RsPointXYZIRT, VelodynePointXYZIR>(pc_in, pc_out);
         add_ring<RsPointXYZIRT, VelodynePointXYZIR>(pc_in, pc_out);
-        publish_points(pc_out, pc_msg);
     }
     else if (output_type == "XYZI") {
         pcl::PointCloud<pcl::PointXYZI>::Ptr pc_out(new pcl::PointCloud<pcl::PointXYZI>());
         handle_pc_msg<RsPointXYZIRT, pcl::PointXYZI>(pc_in, pc_out);
-
-        bool Filter = false;
-        if (Filter)
-        {
-            pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZI>);
-            sor.setInputCloud(pc_out);// 填入点云
-            sor.setMeanK(50);        // 设置均值参数K
-            sor.setStddevMulThresh(0.6);// 设置
-            sor.filter(*cloud_filtered);
-
-            publish_points(cloud_filtered, pc_msg);
-        }
-        else
-            publish_points(pc_out, pc_msg);
     }
+    else {
+        
+    }
+    bool Filter = true;
+    if (Filter) {
+        pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZI>);
+        sor.setInputCloud(pc_out);// 填入点云
+        sor.setMeanK(30);        // 设置均值参数K
+        sor.setStddevMulThresh(0.6);// 设置均方差阈值
+        sor.filter(*cloud_filtered);
+
+        publish_points(cloud_filtered, pc_msg);
+    }
+    else
+        publish_points(pc_out, pc_msg);
 }
 
 

@@ -168,9 +168,6 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -g -G --ptxas-options=-v)
 endif()
 
-set(TENSORRT_INCLUDE_DIRS  /opt/TensorRT/include/)
-set(TENSORRT_LIBRARY_DIRS  /opt/TensorRT/lib)
-
 include_directories(
     ${CUDA_INCLUDE_DIRS}
     ${TENSORRT_INCLUDE_DIRS}
