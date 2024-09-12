@@ -3,8 +3,8 @@
     <arg name="pcd_topic" default="/rslidar" />
     <arg name="vis_topic" default="/marker" />
     <arg name="vis_color" default="red" />
-    <node name="$(arg node_name)" pkg="cuda_pointpillars" type="cuda_pointpillars" output="screen">
-        <param name="src_path" type="str" value="$(find cuda_pointpillars)" />
+    <node name="$(arg node_name)" pkg="cuda_centerpoint" type="cuda_centerpoint" output="screen">
+        <param name="src_path" type="str" value="$(find cuda_centerpoint)" />
         <param name="lidar_topic" type="str" value="$(arg pcd_topic)_processed" />
         <param name="vis_topic" type="str" value="$(arg vis_topic)" />
         <param name="vis_color" type="str" value="$(arg vis_color)" />

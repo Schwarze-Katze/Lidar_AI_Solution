@@ -38,7 +38,7 @@ struct RsPointXYZIRT {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 } EIGEN_ALIGN16;
 POINT_CLOUD_REGISTER_POINT_STRUCT(RsPointXYZIRT,
-                                  (float, x, x)(float, y, y)(float, z, z)(uint8_t, intensity, intensity)
+                                  (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)
                                           (uint16_t, ring, ring)(double, timestamp, timestamp))
 
 // velodyne的点云格式
@@ -186,30 +186,38 @@ void rsHandler_XYZIRT(const sensor_msgs::PointCloud2& pc_msg) {
         handle_pc_msg<RsPointXYZIRT, VelodynePointXYZIRT>(pc_in, pc_out);
         add_ring<RsPointXYZIRT, VelodynePointXYZIRT>(pc_in, pc_out);
         add_time<RsPointXYZIRT, VelodynePointXYZIRT>(pc_in, pc_out);
+        publish_points(pc_out, pc_msg);
+        return;
     } else if (output_type == "XYZIR") {
         pcl::PointCloud<VelodynePointXYZIR>::Ptr pc_out(new pcl::PointCloud<VelodynePointXYZIR>());
         handle_pc_msg<RsPointXYZIRT, VelodynePointXYZIR>(pc_in, pc_out);
         add_ring<RsPointXYZIRT, VelodynePointXYZIR>(pc_in, pc_out);
+        publish_points(pc_out, pc_msg);
+        return;
     }
     else if (output_type == "XYZI") {
         pcl::PointCloud<pcl::PointXYZI>::Ptr pc_out(new pcl::PointCloud<pcl::PointXYZI>());
         handle_pc_msg<RsPointXYZIRT, pcl::PointXYZI>(pc_in, pc_out);
+
+        bool Filter = true;
+        if (Filter) {
+            pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZI>);
+            sor.setInputCloud(pc_out);// 填入点云
+            sor.setMeanK(30);        // 设置均值参数K
+            sor.setStddevMulThresh(0.6);// 设置均方差阈值
+            sor.filter(*cloud_filtered);
+
+            publish_points(cloud_filtered, pc_msg);
+        }
+        else {
+            publish_points(pc_out, pc_msg);
+        }
+        return;
     }
     else {
-        
+        return;
     }
-    bool Filter = true;
-    if (Filter) {
-        pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZI>);
-        sor.setInputCloud(pc_out);// 填入点云
-        sor.setMeanK(30);        // 设置均值参数K
-        sor.setStddevMulThresh(0.6);// 设置均方差阈值
-        sor.filter(*cloud_filtered);
-
-        publish_points(cloud_filtered, pc_msg);
-    }
-    else
-        publish_points(pc_out, pc_msg);
+    
 }
 
 
@@ -240,7 +248,7 @@ int main(int argc, char** argv) {
     }
     pubRobosensePC = nh.advertise<sensor_msgs::PointCloud2>(output_topic, 1);
 
-    ROS_INFO("Listening to /rslidar_points ......");
+    ROS_INFO("Listening to %s, publishing to %s ...", argv[3], argv[4]);
     ros::spin();
     return 0;
 }

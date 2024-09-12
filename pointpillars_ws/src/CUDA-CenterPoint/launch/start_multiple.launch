@@ -1,10 +1,10 @@
 <launch>
-    <include file="$(dirname)/cuda.launch">
+    <!-- <include file="$(dirname)/cuda.launch">
         <arg name="node_name" value="rslidar_M1" />
         <arg name="pcd_topic" value="/rslidar_M1" />
         <arg name="vis_topic" value="/marker_M1" />
         <arg name="vis_color" value="green" />
-    </include>
+    </include> -->
 
    
     <!-- /rslidar_M1  /rslidar_P80 -->
@@ -16,9 +16,9 @@
         <arg name="vis_topic" value="/marker_P80" />
         <arg name="vis_color" value="red" />
     </include>
-    <!-- <include file="$(find rslidar_sdk)/launch/start.launch" /> -->
+    <include file="$(find rslidar_sdk)/launch/start.launch" />
 
     <!-- rviz -->
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" />
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" /> -->
 
 </launch>
