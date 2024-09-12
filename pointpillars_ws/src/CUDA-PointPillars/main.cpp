@@ -48,7 +48,6 @@ std::string Data_File = "/data/";
 std::string Save_Dir = "/eval/kitti/object/pred_velo/";
 std::string Model_File = "/model/pointpillar.onnx";
 
-
 std::vector<std::string> box_type;
 
 typedef std::unique_lock<std::mutex> ULK;
@@ -126,7 +125,7 @@ int loadData(const char *file, void **data, unsigned int *length)
   if(buffer==NULL) {
 	  std::cout << "Can't malloc buffer."<<std::endl;
     dataFile.close();
-	  exit(-1);
+    exit(EXIT_FAILURE);
   }
 
   //read data as a block:
@@ -237,7 +236,7 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
     else
       marker_id.text = box_type[box.id];
     marker_id.pose.position.z += 0.3;
-    marker_id.scale.z = 0.5;
+    marker_id.scale.z = 1.0;
     marker_id.color.r = 1.0f;
     marker_id.color.g = 1.0f;
     marker_id.color.b = 1.0f;
