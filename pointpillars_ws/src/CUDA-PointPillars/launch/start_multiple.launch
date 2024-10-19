@@ -8,7 +8,7 @@
 
    
     <!-- /rslidar_M1  /rslidar_P80 -->
-
+    <node pkg="tf" type="static_transform_publisher" name="map_to_rslidar" args="0 0 0 0 0 0 map rslidar 10" />
 
     <include file="$(dirname)/cuda.launch">
         <arg name="node_name" value="rslidar_P80" />
@@ -16,6 +16,14 @@
         <arg name="vis_topic" value="/marker_P80" />
         <arg name="vis_color" value="red" />
     </include>
+
+    <include file="$(dirname)/cuda.launch">
+        <arg name="node_name" value="new_lidar" />
+        <arg name="pcd_topic" value="/point_cloud_topic" />
+        <arg name="vis_topic" value="/marker_new" />
+        <arg name="vis_color" value="blue" />
+    </include>
+
     <!-- <include file="$(find rslidar_sdk)/launch/start.launch" /> -->
 
     <!-- rviz -->

@@ -165,14 +165,20 @@ void SaveBoxPred(std::vector<Bndbox> boxes, std::string file_name)
 
 void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::string &color) {
   visualization_msgs::MarkerArray marker_array;
-
+  std::string color_temp;
   for (size_t i = 0; i < boxes.size(); ++i) {
     const auto& box = boxes[i];
+    const float threshold = 0.3;
+    if (box.score < threshold and box_type[box.id] == "car")
+    {
+      // continue;
+      color_temp = "gray";
+    }
+    else
+      color_temp = color;
+      
 
 
-
-
-    
     visualization_msgs::Marker marker;
     marker.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称
     marker.header.stamp = ros::Time::now();
@@ -192,25 +198,25 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
     marker.scale.y = box.w;
     marker.scale.z = box.h;
     // 设置颜色
-    if(color == "red"){
+    if (color_temp == "red") {
     marker.color.r = 1.0f;
     marker.color.g = 0.0f;
     marker.color.b = 0.0f;
     marker.color.a = 0.4f;
     }
-    else if(color == "green"){
+    else if (color_temp == "green") {
     marker.color.r = 0.0f;
     marker.color.g = 1.0f;
     marker.color.b = 0.0f;
     marker.color.a = 0.4f;
     }
-    else if(color == "blue"){
+    else if (color_temp == "blue") {
     marker.color.r = 0.0f;
     marker.color.g = 0.0f;
     marker.color.b = 1.0f;
     marker.color.a = 0.4f;
     }
-    else{
+    else {
     marker.color.r = 0.5f;
     marker.color.g = 0.5f;
     marker.color.b = 0.5f;
@@ -234,7 +240,12 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
     if (box.id > box_type.size())
       marker_id.text = "";
     else
+      {
+        
       marker_id.text = box_type[box.id];
+      marker_id.text += "\n";
+      marker_id.text += std::to_string(box.score);
+      }
     marker_id.pose.position.z += 0.3;
     marker_id.scale.z = 1.0;
     marker_id.color.r = 1.0f;
