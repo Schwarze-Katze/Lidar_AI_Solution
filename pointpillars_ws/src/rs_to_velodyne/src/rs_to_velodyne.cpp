@@ -138,10 +138,15 @@ void handle_pc_msg(const typename pcl::PointCloud<T_in_p>::Ptr &pc_in,
         if (has_nan(pc_in->points[point_id]))
             continue;
         T_out_p new_point;
-//        std::copy(pc->points[point_id].data, pc->points[point_id].data + 4, new_point.data);
+        //        std::copy(pc->points[point_id].data, pc->points[point_id].data + 4, new_point.data);
+
+        new_point.z = pc_in->points[point_id].z;
+        // new_point.z += 0.75;
+        // if (new_point.z < 0.2)
+            // continue;
+        
         new_point.x = pc_in->points[point_id].x;
         new_point.y = pc_in->points[point_id].y;
-        new_point.z = pc_in->points[point_id].z;
         new_point.intensity = pc_in->points[point_id].intensity;
 //        new_point.ring = pc->points[point_id].ring;
 //        // 计算相对于第一个点的相对时间
