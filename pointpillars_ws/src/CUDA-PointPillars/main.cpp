@@ -169,9 +169,6 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
   for (size_t i = 0; i < boxes.size(); ++i) {
     const auto& box = boxes[i];
 
-
-
-
     
     visualization_msgs::Marker marker;
     marker.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称

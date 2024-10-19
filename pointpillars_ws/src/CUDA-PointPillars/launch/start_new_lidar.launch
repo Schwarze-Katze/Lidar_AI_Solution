@@ -1,0 +1,12 @@
+<launch>
+    <include file="$(dirname)/cuda_new_lidar.launch">
+        <arg name="node_name" value="new_lidar" />
+        <arg name="pcd_topic" value="/aeva/1/point_cloud_compensated" />
+        <arg name="vis_topic" value="/marker_aeva" />
+        <arg name="vis_color" value="blue" />
+    </include>
+
+    <!-- rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" />
+
+</launch>

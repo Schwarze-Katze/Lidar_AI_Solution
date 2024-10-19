@@ -16,9 +16,9 @@
         <arg name="vis_topic" value="/marker_P80" />
         <arg name="vis_color" value="red" />
     </include>
-    <!-- <include file="$(find rslidar_sdk)/launch/start.launch" /> -->
+    <include file="$(find rslidar_sdk)/launch/start.launch" />
 
     <!-- rviz -->
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" />
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" /> -->
 
 </launch>
