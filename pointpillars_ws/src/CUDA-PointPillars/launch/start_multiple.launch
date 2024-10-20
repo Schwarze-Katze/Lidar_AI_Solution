@@ -27,6 +27,6 @@
     <!-- <include file="$(find rslidar_sdk)/launch/start.launch" /> -->
 
     <!-- rviz -->
-    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" /> -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" />
 
 </launch>
