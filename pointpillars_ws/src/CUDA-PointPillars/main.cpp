@@ -171,6 +171,9 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
   for (size_t i = 0; i < boxes.size(); ++i) {
     const auto& box = boxes[i];
     const float threshold = 0.3;
+    if(box.h > 5 or box.w > 20 or box.h > 20){
+      continue;
+    }
     if (box.score < threshold and box_type[box.id] == "car")
     {
       // continue;
@@ -178,8 +181,6 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
     }
     else
       color_temp = color;
-      
-
 
     visualization_msgs::Marker marker;
     marker.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称
