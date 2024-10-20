@@ -24,7 +24,9 @@
 #include <tf/tf.h>
 #include "cuda_runtime.h"
 
-
+#include <tf/transform_broadcaster.h>
+#include "tf2_ros/static_transform_broadcaster.h"  
+#include "geometry_msgs/TransformStamped.h" 
 
 
 #include "./params.h"
@@ -263,7 +265,9 @@ void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::
   ROS_INFO("Published %lu bounding boxes", boxes.size());
 }
 
-int main(int argc, char **argv)
+
+
+int main(int argc, char** argv)
 {
   Getinfo();
   ros::init(argc, argv, "cuda_pointpillars_node");
@@ -281,6 +285,20 @@ int main(int argc, char **argv)
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
   cudaStream_t stream = NULL;
+
+  // // 创建一个静态变换广播器
+  // tf::TransformBroadcaster broadcaster;
+  // tf2_ros::StaticTransformBroadcaster pub;
+  
+  // // 创建变换对象
+  // tf::Transform transform;
+
+  // // 填充变换数据
+  // transform.setOrigin(tf::Vector3(0.0, 0.0, 0.0)); // 平移
+  // transform.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0)); // 旋转（单位四元数）
+
+  // // 发布变换
+  // broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "aeva/1/sensor", "rslidar"));
 
   checkCudaErrors(cudaEventCreate(&start));
   checkCudaErrors(cudaEventCreate(&stop));
