@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/Imu.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -10,6 +11,7 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 
 std::string output_type;
+double time_diff_imu;
 
 static int RING_ID_MAP_RUBY[] = {
         3, 66, 33, 96, 11, 74, 41, 104, 19, 82, 49, 112, 27, 90, 57, 120,
@@ -39,7 +41,7 @@ struct RsPointXYZIRT {
 } EIGEN_ALIGN16;
 POINT_CLOUD_REGISTER_POINT_STRUCT(RsPointXYZIRT,
                                   (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)
-                                          (uint16_t, ring, ring)(double, timestamp, timestamp))
+    (uint16_t, ring, ring)(double, timestamp, timestamp))
 
 // velodyne的点云格式
 struct VelodynePointXYZIRT {
@@ -97,13 +99,14 @@ void publish_points(T &new_pc, const sensor_msgs::PointCloud2 &old_msg) {
     sensor_msgs::PointCloud2 pc_new_msg;
     pcl::toROSMsg(*new_pc, pc_new_msg);
     pc_new_msg.header = old_msg.header;
+    pc_new_msg.header.stamp=ros::Time(ros::Time::now().toSec()+time_diff_imu);//解决雷达消息时间戳与imu的录制时间不同的问题
     pc_new_msg.header.frame_id = "rslidar";
     pubRobosensePC.publish(pc_new_msg);
 }
 
 void rsHandler_XYZI(sensor_msgs::PointCloud2 pc_msg) {
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc(new pcl::PointCloud<pcl::PointXYZI>());
-    pcl::PointCloud<VelodynePointXYZIR>::Ptr pc_new(new pcl::PointCloud<VelodynePointXYZIR>());
+    pcl::PointCloud<VelodynePointXYZIRT>::Ptr pc_new(new pcl::PointCloud<VelodynePointXYZIRT>());
     pcl::fromROSMsg(pc_msg, *pc);
 
     // to new pointcloud
@@ -111,7 +114,7 @@ void rsHandler_XYZI(sensor_msgs::PointCloud2 pc_msg) {
         if (has_nan(pc->points[point_id]))
             continue;
 
-        VelodynePointXYZIR new_point;
+        VelodynePointXYZIRT new_point;
         new_point.x = pc->points[point_id].x;
         new_point.y = pc->points[point_id].y;
         new_point.z = pc->points[point_id].z;
@@ -121,6 +124,9 @@ void rsHandler_XYZI(sensor_msgs::PointCloud2 pc_msg) {
             new_point.ring = RING_ID_MAP_16[point_id / pc->width];
         } else if (pc->height == 128) {
             new_point.ring = RING_ID_MAP_RUBY[point_id % pc->height];
+        }
+        else {
+            new_point.ring = point_id / 10000;
         }
         pc_new->points.push_back(new_point);
     }
@@ -228,9 +234,18 @@ void rsHandler_XYZIRT(const sensor_msgs::PointCloud2& pc_msg) {
 
 std::string input_topic, output_topic;
 
+void imu_handler(const sensor_msgs::Imu& msg) {
+    if(time_diff_imu == 0.0){
+
+    time_diff_imu = (msg.header.stamp-ros::Time::now()).toSec();
+    }
+    // ROS_INFO("time_diff_imu = %.2lf", time_diff_imu);
+}
+
 int main(int argc, char** argv) {
     ros::init(argc, argv, "rs_converter");
     ros::NodeHandle nh;
+    ros::Subscriber subImuTime;
     if (argc < 5) {
         ROS_ERROR(
                 "Please specify input pointcloud type( XYZI or XYZIRT) and output pointcloud type(XYZI, XYZIR, XYZIRT)!!!");
@@ -242,13 +257,16 @@ int main(int argc, char** argv) {
         output_topic = argv[4];
 
         if (std::strcmp("XYZI", argv[1]) == 0) {
-            subRobosensePC = nh.subscribe(input_topic, 1, rsHandler_XYZI);
+            subRobosensePC = nh.subscribe(input_topic, 100, rsHandler_XYZI);
         } else if (std::strcmp("XYZIRT", argv[1]) == 0) {
-            subRobosensePC = nh.subscribe(input_topic, 1, rsHandler_XYZIRT);
+            subRobosensePC = nh.subscribe(input_topic, 100, rsHandler_XYZIRT);
         } else {
             ROS_ERROR(argv[1]);
             ROS_ERROR("Unsupported input pointcloud type. Currently only support XYZI and XYZIRT.");
             exit(1);
+        }
+        if("/njust/1/point_cloud_compensated" == input_topic){
+            subImuTime = nh.subscribe("/Imu", 1000, imu_handler);
         }
     }
     pubRobosensePC = nh.advertise<sensor_msgs::PointCloud2>(output_topic, 1);
