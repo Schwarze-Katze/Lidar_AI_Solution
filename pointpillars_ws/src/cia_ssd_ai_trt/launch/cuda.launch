@@ -1,0 +1,25 @@
+<launch>
+    <arg name="node_name" default="rslidar" />
+    <arg name="pcd_topic" default="/rslidar" />
+    <arg name="vis_topic" default="/marker" />
+    <arg name="vis_color" default="red" />
+    <!-- <node name="$(arg node_name)" pkg="cuda_pointpillars" type="cuda_pointpillars" output="screen">
+        <param name="src_path" type="str" value="$(find cuda_pointpillars)" />
+        <param name="lidar_topic" type="str" value="$(arg pcd_topic)_processed" />
+        <param name="vis_topic" type="str" value="$(arg vis_topic)" />
+        <param name="vis_color" type="str" value="$(arg vis_color)" />
+    </node> -->
+    <node name="$(arg node_name)_cia" pkg="cia" type="cia-ssd-ai-trt" output="screen" args="-d ">
+        <param name="src_path" type="str" value="$(find cuda_pointpillars)" />
+        <param name="lidar_topic" type="str" value="$(arg pcd_topic)_processed" />
+        <param name="vis_topic" type="str" value="$(arg vis_topic)" />
+        <param name="vis_color" type="str" value="$(arg vis_color)" />
+
+    </node>
+
+    <node name="$(arg node_name)_rs_to_velodyne" pkg="rs_to_velodyne" type="rs_to_velodyne"
+        output="screen"
+        args="XYZIRT XYZI $(arg pcd_topic) $(arg pcd_topic)_processed">
+    </node>
+
+</launch>
