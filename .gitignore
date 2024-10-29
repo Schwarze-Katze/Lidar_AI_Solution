@@ -2,6 +2,8 @@ __pycache__
 .vscode/
 pointpillars_ws/build
 pointpillars_ws/devel
+CUDA-CenterPoint
+pointpillars_ws/src/CUDA-CenterPoint
 
 *.zip
 *.bin
