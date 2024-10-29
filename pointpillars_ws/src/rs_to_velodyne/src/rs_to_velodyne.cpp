@@ -99,7 +99,7 @@ void publish_points(T &new_pc, const sensor_msgs::PointCloud2 &old_msg) {
     sensor_msgs::PointCloud2 pc_new_msg;
     pcl::toROSMsg(*new_pc, pc_new_msg);
     pc_new_msg.header = old_msg.header;
-    pc_new_msg.header.stamp=ros::Time(ros::Time::now().toSec()+time_diff_imu);//解决雷达消息时间戳与imu的录制时间不同的问题
+    // pc_new_msg.header.stamp=ros::Time(ros::Time::now().toSec()+time_diff_imu);//解决雷达消息时间戳与imu的录制时间不同的问题
     pc_new_msg.header.frame_id = "rslidar";
     pubRobosensePC.publish(pc_new_msg);
 }
