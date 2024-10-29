@@ -131,16 +131,14 @@ int CenterPoint::prepare(){
 int CenterPoint::doinfer(void* points, unsigned int point_num, cudaStream_t stream)
 {
     float elapsedTime = 0.0f;
-
     timer_.start(stream);
     pre_->generateVoxels((float *)points, point_num, stream);
     timing_pre_.push_back(timer_.stop("Voxelization", verbose_));
-
     unsigned int valid_num = pre_->getOutput(&d_voxel_features, &d_voxel_indices, sparse_shape);
     if (verbose_) {
         std::cout << "valid_num: " << valid_num <<std::endl;
     }
-
+    printf("stop3\r\n");
     timer_.start(stream);
     auto result = scn_engine_->forward(
         {valid_num, 5}, spconv::DType::Float16, d_voxel_features,
@@ -148,7 +146,7 @@ int CenterPoint::doinfer(void* points, unsigned int point_num, cudaStream_t stre
         1, sparse_shape, stream
     );
     timing_scn_engine_.push_back(timer_.stop("3D Backbone", verbose_));
-
+    printf("stop4\r\n");
     timer_.start(stream);
     trt_->forward({result->features_data(), d_reg_[0], d_height_[0], d_dim_[0], d_rot_[0], d_vel_[0], d_hm_[0],
                                                 d_reg_[1], d_height_[1], d_dim_[1], d_rot_[1], d_vel_[1], d_hm_[1],
@@ -158,7 +156,7 @@ int CenterPoint::doinfer(void* points, unsigned int point_num, cudaStream_t stre
                                                 d_reg_[5], d_height_[5], d_dim_[5], d_rot_[5], d_vel_[5], d_hm_[5]}, stream);
     timing_trt_.push_back(timer_.stop("RPN + Head", verbose_));
     nms_pred_.clear();
-
+    printf("stop5/r/n");
     timer_.start(stream);
     for(unsigned int i_task =0; i_task < NUM_TASKS; i_task++) {
         checkCudaErrors(cudaMemset(h_detections_num_, 0, sizeof(unsigned int)));
@@ -214,6 +212,7 @@ int CenterPoint::doinfer(void* points, unsigned int point_num, cudaStream_t stre
             }
         }
     }
+    printf("stop6/r/n");
     timing_post_.push_back(timer_.stop("Decode + NMS", verbose_));
     if (verbose_) {
         std::cout << "Detection NUM: " << nms_pred_.size() << std::endl;

@@ -49,6 +49,7 @@ std::mutex pcd_mtx;
 sensor_msgs::PointCloud2 pcd_buf;
 
 void PointCloudCallback(const sensor_msgs::PointCloud2& msg) {
+    // ROS_INFO("pointcloud received");
     ULK ulk(pcd_mtx);
     pcd_buf = msg;
 #if 0
@@ -299,18 +300,18 @@ static void help()
 
 int main(int argc, char **argv)
 {
-    if (argc < 2)
-        help();
+    // if (argc < 2)
+    //     help();
 
-    const char *value = nullptr;
+    // const char *value = nullptr;
     bool verbose = false;
-    for (int i = 2; i < argc; ++i) {
-        if (startswith(argv[i], "--verbose", &value)) {
-            verbose = true;
-        } else {
-            help();
-        }
-    }
+    // for (int i = 2; i < argc; ++i) {
+    //     if (startswith(argv[i], "--verbose", &value)) {
+    //         verbose = true;
+    //     } else {
+    //         help();
+    //     }
+    // }
 
     GetDeviceInfo();
     ros::init(argc, argv, "cuda_pointpillars_node");
@@ -393,9 +394,10 @@ int main(int argc, char **argv)
         unsigned int points_data_size = points_size * 4 * sizeof(float);
         checkCudaErrors(cudaMallocManaged((void**) &points_data, points_data_size));
         checkCudaErrors(cudaMemcpy(points_data, points, points_data_size, cudaMemcpyHostToDevice));
+        ROS_INFO("Start inferring...");
 
         centerpoint.doinfer(points_data, points_size, stream);
-
+        ROS_INFO("Stop");
 
 #ifdef USE_ROS_PCD_INPUT
         PublishBoxPred(centerpoint.nms_pred_, markerpub, vis_color);
