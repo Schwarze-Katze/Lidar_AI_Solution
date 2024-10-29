@@ -1,0 +1,31 @@
+<launch>
+    
+    <!-- <include file="$(dirname)/cuda.launch">
+        <arg name="node_name" value="rslidar_M1" />
+        <arg name="pcd_topic" value="/rslidar_M1" />
+        <arg name="vis_topic" value="/marker_M1" />
+        <arg name="vis_color" value="green" />
+    </include> -->
+
+    <node pkg="tf" type="static_transform_publisher" name="tf_aeva_1_sensor"
+        args="0 0 0 0 0 0 1 aqronos_lidar rslidar 10" />
+
+
+    <!-- <include file="$(dirname)/cuda.launch">
+        <arg name="node_name" value="rslidar_P80" />
+        <arg name="pcd_topic" value="/rslidar_P80" />
+        <arg name="vis_topic" value="/marker_P80" />
+        <arg name="vis_color" value="red" />
+    </include> -->
+
+    <include file="$(dirname)/cuda.launch">
+        <arg name="node_name" value="aqlidar" />
+        <arg name="pcd_topic" value="/aqlidar_cloud" />
+        <arg name="vis_topic" value="/marker_aqlidar" />
+        <arg name="vis_color" value="green" />
+    </include>
+
+    <!-- rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" />
+
+</launch>

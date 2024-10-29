@@ -15,7 +15,7 @@
     <!-- /rslidar_M1  /rslidar_P80 -->
 
     <node pkg="tf" type="static_transform_publisher" name="aeva_1_sensor"
-        args="0 0 0 0 0 0 aeva/1/sensor rslidar 10" />
+        args="0 0 0 0 0 0 aqronos_lidar rslidar 10" />
 
 
     <include file="$(dirname)/cuda.launch">
@@ -28,10 +28,19 @@
     <include file="$(dirname)/cuda.launch">
         <arg name="node_name" value="new_lidar" />
         <!-- <arg name="pcd_topic" value="/aeva/1/point_cloud_compensated" /> -->
-        <!-- <arg name="pcd_topic" value="/njust/1/point_cloud_compensated" /> -->
-        <arg name="pcd_topic" value="/point_cloud_topic" />
+        <arg name="pcd_topic" value="/njust/1/point_cloud_compensated" />
+        <!-- <arg name="pcd_topic" value="/point_cloud_topic" /> -->
         <arg name="vis_topic" value="/marker_new" />
         <arg name="vis_color" value="blue" />
+    </include>
+
+    <include file="$(dirname)/cuda.launch">
+        <arg name="node_name" value="fmcw_lidar" />
+        <!-- <arg name="pcd_topic" value="/aeva/1/point_cloud_compensated" /> -->
+        <!-- <arg name="pcd_topic" value="/njust/1/point_cloud_compensated" /> -->
+        <arg name="pcd_topic" value="/aqlidar_cloud" />
+        <arg name="vis_topic" value="/marker_fmcw" />
+        <arg name="vis_color" value="green" />
     </include>
 
     <!-- <include file="$(find rslidar_sdk)/launch/start.launch" /> -->
