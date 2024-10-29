@@ -28,8 +28,8 @@
     <include file="$(dirname)/cuda.launch">
         <arg name="node_name" value="new_lidar" />
         <!-- <arg name="pcd_topic" value="/aeva/1/point_cloud_compensated" /> -->
-        <!-- <arg name="pcd_topic" value="/njust/1/point_cloud_compensated" /> -->
-        <arg name="pcd_topic" value="/point_cloud_topic" />
+        <arg name="pcd_topic" value="/njust/1/point_cloud_compensated" />
+        <!-- <arg name="pcd_topic" value="/point_cloud_topic" /> -->
         <arg name="vis_topic" value="/marker_new" />
         <arg name="vis_color" value="blue" />
     </include>

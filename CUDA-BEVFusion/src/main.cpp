@@ -48,8 +48,9 @@ static std::vector<unsigned char*> load_images(const std::string& root) {
     sprintf(path, "%s/%s", root.c_str(), file_names[i]);
 
     int width, height, channels;
-    images.push_back(stbi_load(path, &width, &height, &channels, 0));
-    // printf("Image info[%d]: %d x %d : %d\n", i, width, height, channels);
+    auto image = stbi_load(path, &width, &height, &channels, 0);
+    images.push_back(image);
+    printf("Image info[%d]: %d x %d : %d\n", i, width, height, channels);
   }
   return images;
 }
@@ -258,11 +259,13 @@ int main(int argc, char** argv) {
   // warmup
   auto bboxes =
       core->forward((const unsigned char**)images.data(), lidar_points.ptr<nvtype::half>(), lidar_points.size(0), stream);
-
+  
   // evaluate inference time
   for (int i = 0; i < 5; ++i) {
-    core->forward((const unsigned char**)images.data(), lidar_points.ptr<nvtype::half>(), lidar_points.size(0), stream);
+    bboxes = core->forward((const unsigned char**) images.data(), lidar_points.ptr<nvtype::half>(), lidar_points.size(0), stream);
   }
+  // std::cout << bboxes.size() << std::endl;
+  printf("%d", bboxes.size());
 
   // visualize and save to jpg
   visualize(bboxes, lidar_points, images, lidar2image, "build/cuda-bevfusion.jpg", stream);

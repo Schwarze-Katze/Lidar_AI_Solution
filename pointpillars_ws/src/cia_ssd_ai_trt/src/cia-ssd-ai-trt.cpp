@@ -1864,14 +1864,14 @@ int main(int argc, char** argv) {
     // nh.getParam("src_path", Src_Path);
     std::string lidar_topic;
     nh.getParam("lidar_topic", lidar_topic);
-    ros::Subscriber pclsub = nh.subscribe(lidar_topic, 10, PointCloudCallback);
+    ros::Subscriber pclsub = nh.subscribe(lidar_topic, 1, PointCloudCallback);
     std::string vis_topic;
     nh.getParam("vis_topic", vis_topic);
     ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>(vis_topic, 10);
     std::string vis_color;
     nh.getParam("vis_color", vis_color);
     ros::Rate rate(10);
-    // cudaEvent_t start, stop;
+    // cudaEvent_t start, stop;ars
     // float elapsedTime = 0.0f;
     // cudaStream_t stream = NULL;
 
