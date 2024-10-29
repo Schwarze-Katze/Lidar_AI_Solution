@@ -13,6 +13,6 @@
         output="screen"
         args="XYZI XYZI $(arg pcd_topic) $(arg pcd_topic)_processed">
     </node>
-    <node name="tf_pub_newlidar" pkg="tf" type="static_transform_publisher"
+    <node name="tf_pub_$(arg node_name)" pkg="tf" type="static_transform_publisher"
         args="0 0 0 0 0 0 1 /rslidar /aeva/1/sensor 100"></node>
 </launch>

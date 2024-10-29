@@ -167,6 +167,11 @@ void SaveBoxPred(std::vector<Bndbox> boxes, std::string file_name)
 
 void PublishBoxPred(std::vector<Bndbox> boxes, ros::Publisher& marker_pub, std::string &color) {
   visualization_msgs::MarkerArray marker_array;
+  visualization_msgs::Marker clear_marker;
+  clear_marker.action=visualization_msgs::Marker::DELETEALL;
+  marker_array.markers.push_back(clear_marker);
+  marker_pub.publish(marker_array);
+  marker_array.markers.clear();
   std::string color_temp;
   for (size_t i = 0; i < boxes.size(); ++i) {
     const auto& box = boxes[i];
@@ -276,13 +281,13 @@ int main(int argc, char** argv)
   nh.getParam("src_path", Src_Path);
   std::string lidar_topic;
   nh.getParam("lidar_topic", lidar_topic);
-  ros::Subscriber pclsub = nh.subscribe(lidar_topic, 10, PointCloudCallback);
+  ros::Subscriber pclsub = nh.subscribe(lidar_topic, 2, PointCloudCallback);
   std::string vis_topic;
   nh.getParam("vis_topic", vis_topic);
-  ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>(vis_topic, 10);
+  ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>(vis_topic, 2);
   std::string vis_color;
   nh.getParam("vis_color", vis_color);
-  ros::Rate rate(10);
+  ros::Rate rate(2);
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
   cudaStream_t stream = NULL;
@@ -319,6 +324,7 @@ int main(int argc, char** argv)
 
   while(ros::ok())
   {
+    cudaEventRecord(start, stream);
 #ifdef USE_ROS_PCD_INPUT
     //for test, output to file
     int n_zero = 6;
@@ -383,7 +389,6 @@ int main(int argc, char** argv)
     checkCudaErrors(cudaDeviceSynchronize());
     delete[] points;
 
-    cudaEventRecord(start, stream);
 
     pointpillar.doinfer(points_data, points_size, nms_pred);
     cudaEventRecord(stop, stream);
@@ -394,10 +399,10 @@ int main(int argc, char** argv)
     checkCudaErrors(cudaFree(points_data));
 
     std::cout<<"Bndbox objs: "<< nms_pred.size()<<std::endl;
-    std::string save_file_name = Src_Path + Save_Dir + index_str + ".txt";
 #ifdef USE_ROS_PCD_INPUT
     PublishBoxPred(nms_pred, markerpub, vis_color);
 #else
+    std::string save_file_name = Src_Path + Save_Dir + index_str + ".txt";
     SaveBoxPred(nms_pred, save_file_name);
 #endif
 
@@ -405,7 +410,7 @@ int main(int argc, char** argv)
 
     std::cout << ">>>>>>>>>>>" << std::endl;
     ros::spinOnce();
-    rate.sleep();
+    // rate.sleep();
   }
 
   checkCudaErrors(cudaEventDestroy(start));
