@@ -1872,7 +1872,7 @@ int main(int argc, char** argv) {
     std::string vis_color;
     nh.getParam("vis_color", vis_color);
     ros::Rate rate(10);
-    // cudaEvent_t start, stop;
+    // cudaEvent_t start, stop;ars
     // float elapsedTime = 0.0f;
     // cudaStream_t stream = NULL;
 

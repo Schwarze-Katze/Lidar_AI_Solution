@@ -9,7 +9,7 @@
         <param name="vis_topic" type="str" value="$(arg vis_topic)" />
         <param name="vis_color" type="str" value="$(arg vis_color)" />
     </node> -->
-    <node name="$(arg node_name)_cia" pkg="cia" type="cia-ssd-ai-trt" output="screen" args="-d ">
+    <node name="$(arg node_name)_cia" pkg="cia" type="cia-ssd-ai-trt" output="screen" args="-d">
         <param name="src_path" type="str" value="$(find cuda_pointpillars)" />
         <param name="lidar_topic" type="str" value="$(arg pcd_topic)_processed" />
         <param name="vis_topic" type="str" value="$(arg vis_topic)" />

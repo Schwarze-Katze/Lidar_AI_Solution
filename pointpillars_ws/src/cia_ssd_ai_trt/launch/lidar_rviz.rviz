@@ -58,7 +58,8 @@ Visualization Manager:
           Marker Topic: /marker_M1
           Name: M1_box
           Namespaces:
-            {}
+            bounding_boxes: true
+            bounding_boxes_id: true
           Queue Size: 100
           Value: true
         - Alpha: 1
@@ -110,14 +111,14 @@ Visualization Manager:
           Queue Size: 10
           Selectable: true
           Size (Pixels): 3
-          Size (m): 0.019999999552965164
+          Size (m): 0.05000000074505806
           Style: Flat Squares
           Topic: /rslidar_M1
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
           Value: true
-      Enabled: false
+      Enabled: true
       Name: M1
     - Class: rviz/Group
       Displays:
