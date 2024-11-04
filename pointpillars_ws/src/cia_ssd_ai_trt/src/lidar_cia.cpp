@@ -1780,7 +1780,7 @@ void PublishBoxPred(std::vector<Bndbox>& boxes, ros::Publisher& marker_pub, std:
         visualization_msgs::Marker marker;
         marker.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称
         marker.header.stamp = ros::Time::now();
-        marker.ns = "bounding_boxes";
+        marker.ns = "cia";
         marker.id = 2 * i + 1;
         marker.type = visualization_msgs::Marker::CUBE;
         marker.action = visualization_msgs::Marker::ADD;
@@ -1835,7 +1835,7 @@ void PublishBoxPred(std::vector<Bndbox>& boxes, ros::Publisher& marker_pub, std:
         marker_id = marker;
         marker_id.header.frame_id = "rslidar";  // 使用合适的坐标系框架名称
         marker_id.header.stamp = ros::Time::now();
-        marker_id.ns = "bounding_boxes_id";
+        marker_id.ns = "cia_id";
         marker_id.id = 2 * i;
         marker_id.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
         marker_id.action = visualization_msgs::Marker::ADD;

@@ -1,0 +1,66 @@
+<launch>
+    <arg name="node_name" default="rslidar" />
+    <arg name="vis_topic" default="/marker" />
+    <arg name="vis_color" default="red" />
+
+
+    <!-- /rslidar_M1  /rslidar_P80 -->
+    <node pkg="tf" type="static_transform_publisher" name="map_to_rslidar"
+        args="0 0 0 0 0 0 map rslidar 10" />
+
+    <!-- /rslidar_M1  /rslidar_P80 -->
+
+    <node pkg="tf" type="static_transform_publisher" name="aeva_1_sensor"
+        args="0 0 0 0 0 0 aeva/1/sensor rslidar 10" />
+
+
+    <!-- M1 -->
+    <include file="$(dirname)/cia.launch">
+        <arg name="node_name" value="rslidar_M1_cia" />
+        <arg name="pcd_topic" value="/rslidar_M1" />
+        <arg name="vis_topic" value="/marker_M1" />
+        <arg name="vis_color" value="green" />
+    </include>
+    <include file="$(dirname)/pp.launch">
+        <arg name="node_name" value="rslidar_M1_pp" />
+        <arg name="pcd_topic" value="/rslidar_M1" />
+        <arg name="vis_topic" value="/marker_M1" />
+        <arg name="vis_color" value="green" />
+    </include>
+
+
+    <!-- P80 -->
+    <!-- <include file="$(dirname)/cia.launch">
+        <arg name="node_name" value="rslidar_P80_cia" />
+        <arg name="pcd_topic" value="/rslidar_P80" />
+        <arg name="vis_topic" value="/marker_P80" />
+        <arg name="vis_color" value="red" />
+    </include>
+    <include file="$(dirname)/pp.launch">
+        <arg name="node_name" value="rslidar_P80_pp" />
+        <arg name="pcd_topic" value="/rslidar_P80" />
+        <arg name="vis_topic" value="/marker_P80" />
+        <arg name="vis_color" value="red" />
+    </include> -->
+
+
+    <!-- New_Lidar -->
+    <!-- <arg name="pcd_topic" value="/njust/1/point_cloud_compensated" /> -->
+    <!-- <include file="$(dirname)/cia.launch">
+        <arg name="node_name" value="new_lidar_cia" />
+        <arg name="pcd_topic" value="/point_cloud_topic" />
+        <arg name="vis_topic" value="/marker_new" />
+        <arg name="vis_color" value="blue" />
+    </include>
+    <include file="$(dirname)/pp.launch">
+        <arg name="node_name" value="new_lidar_pp" />
+        <arg name="pcd_topic" value="/point_cloud_topic" />
+        <arg name="vis_topic" value="/marker_new" />
+        <arg name="vis_color" value="blue" />
+    </include> -->
+
+
+    <!-- rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(dirname)/lidar_rviz.rviz" required="true" />
+
+</launch>

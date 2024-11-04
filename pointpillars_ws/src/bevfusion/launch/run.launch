@@ -1,0 +1,36 @@
+<launch>
+    <!-- <arg name="lidar_topic" default="/1" /> -->
+    <!-- <arg name="image_topic" default="/2" /> -->
+    <!-- <arg name="sub_image_topic" default="/3" /> -->
+
+
+    <param name="move_step_1" type="int" value="2" />
+    <param name="move_step_2" type="int" value="0" />
+
+    <param name="pub_image_topic" type="str" value="/pub" />
+    <!-- <param name="pub_image_topic" type="str" value="/image_topic" /> -->
+
+    <param name="sub_image_topic" type="str" value="/usb_cam/image_raw/compressed" />
+
+    <arg name="pcd_topic" default="/rslidar_P80" />
+
+    <param name="lidar_topic" type="str" value="$(arg pcd_topic)_processed" />
+    <!-- <param name="lidar_topic" type="str" value="lidar_topic" /> -->
+
+
+    <node name="img_process" pkg="bevfusion" type="img_process" output="log">
+    </node>
+
+
+    <node name="pub_test" pkg="bevfusion" type="pub_msg" output="log">
+    </node>
+
+    <node name="bevfusion" pkg="bevfusion" type="bevfusion" output="screen">
+    </node>
+
+    <node name="rs_to_velodyne" pkg="rs_to_velodyne" type="rs_to_velodyne"
+        output="log"
+        args="XYZIRT XYZI $(arg pcd_topic) $(arg pcd_topic)_processed">
+    </node>
+
+</launch> 

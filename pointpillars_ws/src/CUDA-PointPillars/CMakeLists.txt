@@ -164,10 +164,10 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
     -Xlinker -L/usr/aarch64-linux-gnu/lib/
 )
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  message("Using Debug Mode")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -g -G --ptxas-options=-v)
-endif()
+# if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+#   message("Using Debug Mode")
+#   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -g -G --ptxas-options=-v)
+# endif()
 
 set(TENSORRT_ROOT /opt/TensorRT)
 set(TENSORRT_INCLUDE_DIRS ${TENSORRT_ROOT}/include)
@@ -191,12 +191,18 @@ file(GLOB_RECURSE SOURCE_FILES
 )
 
 cuda_add_executable(${PROJECT_NAME} main.cpp ${SOURCE_FILES})
+cuda_add_executable(lidar_pp lidar_pp.cpp ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME}
     libnvinfer.so
     libnvonnxparser.so
+    ${catkin_LIBRARIES}
 )
-
+target_link_libraries(lidar_pp
+    libnvinfer.so
+    libnvonnxparser.so
+    ${catkin_LIBRARIES}
+)
 
 ###########
 ## Build ##
@@ -235,9 +241,9 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(${PROJECT_NAME}
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##

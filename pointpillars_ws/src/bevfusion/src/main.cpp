@@ -365,13 +365,13 @@ void convert_cloud_to_tensor(const pcl::PointCloud<pcl::PointXYZI>& cloud, nv::T
 
   // 创建一个 void* 类型的数组，用于存储转换后的数据
   std::vector<ushort> float16_data(total_size); // n * 2 * 5 需要的 float16 数组
-
+  // num_points = 100000;
   for (size_t i = 0; i < num_points; ++i) {
     const pcl::PointXYZI& pt = cloud.points[i];
     // std::cout << i << "; " << num_points << std::endl;
     // 将 x, y, z, intensity 转换为 float16 并存储
-    float16_data[i * 5 + 0] = float_to_half(pt.x);         // x
-    float16_data[i * 5 + 1] = float_to_half(pt.y);         // y
+    float16_data[i * 5 + 0] = float_to_half(-pt.y);         // x
+    float16_data[i * 5 + 1] = float_to_half(pt.x);         // y
     float16_data[i * 5 + 2] = float_to_half(pt.z);         // z
     float16_data[i * 5 + 3] = float_to_half(pt.intensity);  // intensity
     float16_data[i * 5 + 4] = 0;                         // 补 0
@@ -568,12 +568,12 @@ int main(int argc, char** argv) {
   ros::Rate rate(10);
 
   std::string lidar_topic;
-  // nh.getParam("lidar_topic", lidar_topic);
   lidar_topic = "/lidar_topic";
+  nh.getParam("lidar_topic", lidar_topic);
   ros::Subscriber pclsub = nh.subscribe(lidar_topic, 1, PointCloudCallback);
   std::string image_topic;
-  // nh.getParam("image_topic", image_topic);
   image_topic = "/image_topic";
+  nh.getParam("pub_image_topic", image_topic);
   ros::Subscriber imgsub = nh.subscribe(image_topic, 1, imageCallback);
 
   std::string resimage_topic = "/res_image_topic";
@@ -634,11 +634,51 @@ int main(int argc, char** argv) {
   // auto img_aug_matrix = nv::Tensor::load(nv::format("%s/img_aug_matrix.tensor", data), false);
 
   auto camera2lidar = nv::Tensor::load("/home/rancho/1lhr/Lidar_AI_Solution/pointpillars_ws/src/bevfusion/example-data/camera2lidar.tensor", false);
+  camera2lidar.print("camera2lidar", 0, 16, 6);
+  // return 1;
+  auto& value = *camera2lidar.data;
+  std::cout << std::endl;
+  std::cout << value.bytes << std::endl;
+
+  void* temp_data1 = value.data;
+  int move_step_1 = 0;
+  nh.getParam("move_step_1", move_step_1);
+  std::memmove(temp_data1, temp_data1 + move_step_1 * 16 * 4, value.bytes - move_step_1 * 16 * 4);
+  std::memmove(temp_data1 + (value.bytes - move_step_1 * 16 * 4), temp_data1, move_step_1 * 16 * 4);
+  value.data = temp_data1;
+  camera2lidar.print("new camera2lidar", 0, 16, 6);
+  std::cout << std::endl;
+
+  // value.data = 
+
+
   auto camera_intrinsics = nv::Tensor::load("/home/rancho/1lhr/Lidar_AI_Solution/pointpillars_ws/src/bevfusion/example-data/camera_intrinsics.tensor", false);
+  camera_intrinsics.print("camera_intrinsics", 0, 16, 6);
+  // return 1;
+  std::cout << std::endl;
+
   auto lidar2image = nv::Tensor::load("/home/rancho/1lhr/Lidar_AI_Solution/pointpillars_ws/src/bevfusion/example-data/lidar2image.tensor", false);
+  lidar2image.print("lidar2image", 0, 16, 6);
+  // return 1;
+  std::cout << std::endl;
+
+
+
+
   auto img_aug_matrix = nv::Tensor::load("/home/rancho/1lhr/Lidar_AI_Solution/pointpillars_ws/src/bevfusion/example-data/img_aug_matrix.tensor", false);
+  img_aug_matrix.print("img_aug_matrix", 0, 16, 6);
+  // return 1;
 
+  auto& value2 = *lidar2image.data;
 
+  void* temp_data2 = value2.data;
+  int move_step_2 = 0;
+  nh.getParam("move_step_2", move_step_2);
+  std::memmove(temp_data2, temp_data2 + move_step_2 * 16 * 4, value2.bytes - move_step_2 * 16 * 4);
+  std::memmove(temp_data2 + (value2.bytes - move_step_2 * 16 * 4), temp_data2, move_step_2 * 16 * 4);
+  value2.data = temp_data2;
+
+  
   core->update(camera2lidar.ptr<float>(), camera_intrinsics.ptr<float>(), lidar2image.ptr<float>(), img_aug_matrix.ptr<float>(),
     stream);
   // core->free_excess_memory();
@@ -651,7 +691,7 @@ int main(int argc, char** argv) {
     ULK ulk(mtx);
 
 
-    if (!image_flag and !pcd_flag)
+    if (!image_flag or !pcd_flag)
     {
       ROS_WARN("flag");
       ros::spinOnce();
@@ -667,7 +707,7 @@ int main(int argc, char** argv) {
     auto bboxes = core->forward((const unsigned char**) input_images.data(), pcd_tensor.ptr<nvtype::half>(), pcd_tensor.size(0), stream);
 
     // std::vector<bevfusion::head::transbbox::BoundingBox> bboxes;
-    auto res_img = visualize(bboxes, pcd_tensor, input_images, lidar2image, "build/test-cuda-bevfusion.jpg", stream);
+    auto res_img = visualize(bboxes, pcd_tensor, input_images, lidar2image, "/home/rancho/1lhr/Lidar_AI_Solution/pointpillars_ws/build/new_test-cuda-bevfusion.jpg", stream);
     // free_images(images);
     PublishBoxPred(bboxes, markerpub, vis_color);
     // PubTensorAsImage(res_img, resimg_pub);

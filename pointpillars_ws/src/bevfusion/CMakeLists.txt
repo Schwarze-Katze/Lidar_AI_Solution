@@ -189,6 +189,16 @@ target_link_libraries(sub_msg
   ${OpenCV_LIBS}
 )
 
+cuda_add_executable(img_process 
+  src/img_process.cpp
+)
+
+target_link_libraries(img_process
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${OpenCV_LIBS}
+)
+
 #######################################################################
 
 

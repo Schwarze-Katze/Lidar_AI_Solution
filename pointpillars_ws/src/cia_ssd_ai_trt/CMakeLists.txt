@@ -203,18 +203,31 @@ cuda_add_library(filterBoxByScorelayer SHARED ${PROJECT_SOURCE_DIR}/src/filterBo
 target_link_libraries(filterBoxByScorelayer nvinfer cudart)
 
 add_executable(cia-ssd-ai-trt ${PROJECT_SOURCE_DIR}/src/cia-ssd-ai-trt.cpp)
+add_executable(lidar_cia ${PROJECT_SOURCE_DIR}/src/lidar_cia.cpp)
 
-target_link_libraries(cia-ssd-ai-trt nvinfer)
-target_link_libraries(cia-ssd-ai-trt cudart)
-target_link_libraries(cia-ssd-ai-trt voxelGeneratorlayer)
-target_link_libraries(cia-ssd-ai-trt submConv3dlayer)
-target_link_libraries(cia-ssd-ai-trt sparseConv3dlayer)
-target_link_libraries(cia-ssd-ai-trt sparse2Denselayer)
-target_link_libraries(cia-ssd-ai-trt zeroPad2dlayer)
-target_link_libraries(cia-ssd-ai-trt generateAnchorDecodelayer)
-target_link_libraries(cia-ssd-ai-trt filterBoxByScorelayer)
+target_link_libraries(cia-ssd-ai-trt 
+  nvinfer
+  cudart
+  voxelGeneratorlayer
+  submConv3dlayer
+  sparseConv3dlayer
+  sparse2Denselayer
+  zeroPad2dlayer
+  generateAnchorDecodelayer
+  filterBoxByScorelayer
+  ${catkin_LIBRARIES}
+)
 
-target_link_libraries(cia-ssd-ai-trt
+target_link_libraries(lidar_cia
+  nvinfer
+  cudart
+  voxelGeneratorlayer
+  submConv3dlayer
+  sparseConv3dlayer
+  sparse2Denselayer
+  zeroPad2dlayer
+  generateAnchorDecodelayer
+  filterBoxByScorelayer
   ${catkin_LIBRARIES}
 )
 
