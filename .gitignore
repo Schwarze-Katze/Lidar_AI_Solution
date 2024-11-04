@@ -2,6 +2,8 @@ __pycache__
 .vscode/
 pointpillars_ws/build
 pointpillars_ws/devel
+CUDA-CenterPoint
+pointpillars_ws/src/CUDA-CenterPoint
 
 pointpillars_ws/src/bevfusion/libraries/
 pointpillars_ws/src/bevfusion/model/
@@ -12,3 +14,4 @@ pointpillars_ws/src/bevfusion/*.log
 *.bin
 
 *.engine
+*.cache

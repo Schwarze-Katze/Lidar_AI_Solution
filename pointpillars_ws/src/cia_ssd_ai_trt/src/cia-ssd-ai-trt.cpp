@@ -23,7 +23,7 @@
 #include <chrono>
 #include <cmath>
 #include <string>
-#include <string.h>
+#include <mutex>
 
 #include <ros/ros.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
@@ -1148,7 +1148,7 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder* builder, IBuilder
     // return;
 
     // std::map<std::string, Weights> weightMap = loadWeights("../cia-ssd.wts");
-    std::map<std::string, Weights> weightMap = loadWeights("/home/rancho/1lhr/Lidar_AI_Solution/pointpillars_ws/src/cia_ssd_ai_trt/cia-ssd.wts");
+    std::map<std::string, Weights> weightMap = loadWeights("/home/inin/lidar_ws/src/cia_ssd_ai_trt/cia-ssd.wts");
     std::cout << "load weights finished" << std::endl;
    
 
@@ -1737,9 +1737,11 @@ void save_result(std::vector<Bndbox> &res_,float *output,int voxel_num)
 }
 
 void PointCloudCallback(const sensor_msgs::PointCloud2& msg) {
-    ULK ulk(pcd_mtx);
-    pcd_buf = msg;
-    std::cout << pcd_buf.header.stamp.toNSec() << std::endl;
+    ULK ulk(pcd_mtx,std::try_to_lock);
+    if(ulk.owns_lock()){
+        pcd_buf = msg;
+    }
+    // std::cout << pcd_buf.header.stamp.toNSec() << std::endl;
 }
 
 void PublishBoxPred(std::vector<Bndbox>& boxes, ros::Publisher& marker_pub, std::string& color) {
@@ -1754,14 +1756,6 @@ void PublishBoxPred(std::vector<Bndbox>& boxes, ros::Publisher& marker_pub, std:
     
     visualization_msgs::MarkerArray marker_array;
     std::string color_temp;
-
-
-    // for (size_t i = 0; i < boxes.size(); ++i) {
-    //     const auto& box = boxes[i];
-    //     std::cout << "!!! " << box.x << ", " << box.y << std::endl;
-    //     }
-        
-    // return ;
 
     for (size_t i = 0; i < boxes.size(); ++i) {
         
@@ -1784,7 +1778,7 @@ void PublishBoxPred(std::vector<Bndbox>& boxes, ros::Publisher& marker_pub, std:
         marker.id = 2 * i + 1;
         marker.type = visualization_msgs::Marker::CUBE;
         marker.action = visualization_msgs::Marker::ADD;
-
+        marker.lifetime = ros::Duration(10.0);
         // 设置位置信息
         marker.pose.position.x = box.x;
         marker.pose.position.y = box.y;
@@ -1839,6 +1833,7 @@ void PublishBoxPred(std::vector<Bndbox>& boxes, ros::Publisher& marker_pub, std:
         marker_id.id = 2 * i;
         marker_id.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
         marker_id.action = visualization_msgs::Marker::ADD;
+        marker_id.lifetime = ros::Duration(10.0);
         // marker_id.text = "1";
         if (box.id > box_type.size())
             marker_id.text = " ";
@@ -1860,6 +1855,7 @@ void PublishBoxPred(std::vector<Bndbox>& boxes, ros::Publisher& marker_pub, std:
     }
 
     // 发布标记数组
+    marker_pub.publish(clear_array);
     marker_pub.publish(marker_array);
 
     ROS_INFO("Published %lu bounding boxes", boxes.size());
@@ -1873,10 +1869,11 @@ int main(int argc, char** argv) {
     // nh.getParam("src_path", Src_Path);
     std::string lidar_topic;
     nh.getParam("lidar_topic", lidar_topic);
-    ros::Subscriber pclsub = nh.subscribe(lidar_topic, 1, PointCloudCallback);
+    ros::Subscriber pclsub = nh.subscribe(lidar_topic, 2, PointCloudCallback);
+    ros::Publisher pcd_loop_pub = nh.advertise<sensor_msgs::PointCloud2>("/test_slam_received", 2);
     std::string vis_topic;
     nh.getParam("vis_topic", vis_topic);
-    ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>(vis_topic, 10);
+    ros::Publisher markerpub = nh.advertise<visualization_msgs::MarkerArray>(vis_topic, 2);
     std::string vis_color;
     nh.getParam("vis_color", vis_color);
     ros::Rate rate(10);
@@ -2014,7 +2011,7 @@ int main(int argc, char** argv) {
         }
 
         // 使用PointCloud2的迭代器来访问数据
-
+        pcd_loop_pub.publish(pcd_buf);
         sensor_msgs::PointCloud2ConstIterator<float> iter_x(pcd_buf, "x");
         sensor_msgs::PointCloud2ConstIterator<float> iter_y(pcd_buf, "y");
         sensor_msgs::PointCloud2ConstIterator<float> iter_z(pcd_buf, "z");
@@ -2088,7 +2085,7 @@ int main(int argc, char** argv) {
         nms_pred.clear();
         res_.clear();
         ros::spinOnce();
-        rate.sleep();
+        // rate.sleep();
     }
 
 

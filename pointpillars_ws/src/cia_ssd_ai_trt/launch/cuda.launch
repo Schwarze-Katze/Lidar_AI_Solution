@@ -19,7 +19,7 @@
 
     <node name="$(arg node_name)_rs_to_velodyne" pkg="rs_to_velodyne" type="rs_to_velodyne"
         output="screen"
-        args="XYZIRT XYZI $(arg pcd_topic) $(arg pcd_topic)_processed">
+        args="XYZI XYZI $(arg pcd_topic) $(arg pcd_topic)_processed">
     </node>
 
 </launch>
